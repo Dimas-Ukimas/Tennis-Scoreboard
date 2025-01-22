@@ -1,5 +1,6 @@
 package com.dimasukimas.tennisscoreboard.model.match;
 
+import com.dimasukimas.tennisscoreboard.service.scoring.ScoringStrategy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OngoingMatch extends Match {
+public class OngoingMatch extends ScorableMatch {
+    MatchState matchState;
+    ScoringStrategy scoringStrategy;
 
     private int player1Sets;
     private int player2Sets;
@@ -20,8 +23,13 @@ public class OngoingMatch extends Match {
     private int player1Points;
     private int player2Points;
 
-    public void resetPoints(){
-        player1Points = 0;
-        player2Points = 0;
+    public OngoingMatch(ScoringStrategy strategy){
+        scoringStrategy = strategy;
+        matchState = MatchState.INITIAL;
     }
+
+    public void updateScore(int winnerId){
+        scoringStrategy.calculateScore(this, winnerId );
+    }
+
 }
