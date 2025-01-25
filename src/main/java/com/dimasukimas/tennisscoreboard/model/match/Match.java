@@ -1,24 +1,37 @@
 package com.dimasukimas.tennisscoreboard.model.match;
 
 import com.dimasukimas.tennisscoreboard.model.Player;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MappedSuperclass;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-@Setter
+
 @Getter
 @NoArgsConstructor
-@SuperBuilder
-@MappedSuperclass
-public abstract class Match {
+@Entity
+@Table(name = "matches", schema = "public")
+public class Match {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Setter
     @ManyToOne
     private Player player1;
 
+    @Setter
     @ManyToOne
     private Player player2;
+
+    @Setter
+    @ManyToOne
+    private Player winner;
+
+    public Match(OngoingMatch match){
+        this.player1 = match.getPlayer1();
+        this.player2 = match.getPlayer2();
+        this.winner = match.getWinner();
+    }
 
 }
