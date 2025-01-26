@@ -8,21 +8,7 @@ public class StandardScoringStrategy implements ScoringStrategy {
     @Override
     public void calculateScore(OngoingMatch match, int winnerId) {
         setNextScore(match, winnerId);
-        updateMatchState(match);
-    }
-
-    private void updateMatchState(OngoingMatch match) {
-
-        if (isMatchFinished(match.getPlayer1Sets(), match.getPlayer2Sets())) {
-            match.setMatchState(MatchState.FINISHED);
-        } else if (isTieBreak(match.getPlayer1Games(), match.getPlayer2Games())) {
-            match.setMatchState(MatchState.TIEBREAK);
-        } else if (isDeuce(match.getPlayer1Points(), match.getPlayer2Points())) {
-            match.setMatchState(MatchState.DEUCE);
-        } else if (isAdvantage(match.getPlayer1Points(), match.getPlayer2Points())) {
-            match.setMatchState(MatchState.ADVANTAGE);
-        } else
-            match.setMatchState(MatchState.NORMAL);
+        updateMatchStateAndWinner(match);
     }
 
     private void setNextScore(OngoingMatch match, int winnerId) {
@@ -35,7 +21,6 @@ public class StandardScoringStrategy implements ScoringStrategy {
         } else {
             match.addPointToWinner(winnerId);
         }
-
         if (isGameWon(match)) {
             match.addGameToWinner(winnerId);
             match.resetPlayersPoints();
@@ -43,6 +28,20 @@ public class StandardScoringStrategy implements ScoringStrategy {
         if (isSetWon(match)) {
             match.addSetToWinner(winnerId);
         }
+    }
+
+    private void updateMatchStateAndWinner(OngoingMatch match) {
+        if (isMatchFinished(match)) {
+            match.setMatchState(MatchState.FINISHED);
+            setMatchWinner(match);
+        } else if (isTieBreak(match)) {
+            match.setMatchState(MatchState.TIEBREAK);
+        } else if (isDeuce(match)) {
+            match.setMatchState(MatchState.DEUCE);
+        } else if (isAdvantage(match)) {
+            match.setMatchState(MatchState.ADVANTAGE);
+        } else
+            match.setMatchState(MatchState.NORMAL);
     }
 
     private boolean isGameWon(OngoingMatch match) {
@@ -74,25 +73,44 @@ public class StandardScoringStrategy implements ScoringStrategy {
         return isOneGameDifferenceAtTieBreak || isTwoGameDifferenceAtSixGames;
     }
 
-    public boolean isMatchFinished(int player1Sets, int player2Sets) {
+    private boolean isMatchFinished(OngoingMatch match) {
+        int player1Sets = match.getPlayer1Sets();
+        int player2Sets = match.getPlayer2Sets();
 
         return player1Sets == 2 || player2Sets == 2;
     }
 
-    private boolean isTieBreak(int player1Games, int player2Games) {
+    private boolean isTieBreak(OngoingMatch match) {
+        int player1Games = match.getPlayer1Games();
+        int player2Games = match.getPlayer2Games();
 
         return player1Games == player2Games && player1Games == 6;
     }
 
-    private boolean isAdvantage(int player1Points, int player2Points) {
+    private boolean isAdvantage(OngoingMatch match) {
+        int player1Points = match.getPlayer1Points();
+        int player2Points = match.getPlayer2Points();
+
         boolean isFourPointsScore = player1Points == 4 || player2Points == 4;
         boolean isOnePointDifference = Math.abs(player1Points - player2Points) == 1;
 
         return isFourPointsScore && isOnePointDifference;
     }
 
-    private boolean isDeuce(int player1Points, int player2Points) {
+    private boolean isDeuce(OngoingMatch match) {
+        int player1Points = match.getPlayer1Points();
+        int player2Points = match.getPlayer2Points();
+
         return player1Points == player2Points && player1Points == 3;
     }
 
+    private void setMatchWinner(OngoingMatch match) {
+        if (isMatchFinished(match)) {
+            if (match.getPlayer1Sets() == 2) {
+                match.setWinner(match.getPlayer1());
+            } else {
+                match.setWinner(match.getPlayer2());
+            }
+        }
+    }
 }
