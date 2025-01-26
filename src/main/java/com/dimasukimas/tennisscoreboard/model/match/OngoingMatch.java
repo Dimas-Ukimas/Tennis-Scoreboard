@@ -1,15 +1,11 @@
 package com.dimasukimas.tennisscoreboard.model.match;
 
 import com.dimasukimas.tennisscoreboard.service.scoring.ScoringStrategy;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+
+@Getter
+@Setter
 public class OngoingMatch extends ScorableMatch {
     MatchState matchState;
     ScoringStrategy scoringStrategy;
@@ -31,5 +27,7 @@ public class OngoingMatch extends ScorableMatch {
     public void updateScore(int winnerId){
         scoringStrategy.calculateScore(this, winnerId );
     }
+
+
 
 }
