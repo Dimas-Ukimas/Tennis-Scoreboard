@@ -1,4 +1,4 @@
-package com.dimasukimas.tennisscoreboard.model.match;
+package com.dimasukimas.tennisscoreboard.enums;
 
 public enum MatchState {
 
