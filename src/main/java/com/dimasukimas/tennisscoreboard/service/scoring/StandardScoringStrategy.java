@@ -1,7 +1,7 @@
 package com.dimasukimas.tennisscoreboard.service.scoring;
 
 import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
-import com.dimasukimas.tennisscoreboard.model.match.MatchState;
+import com.dimasukimas.tennisscoreboard.enums.MatchState;
 
 public class StandardScoringStrategy implements ScoringStrategy {
 
