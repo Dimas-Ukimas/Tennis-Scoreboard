@@ -64,4 +64,9 @@ public class OngoingMatch extends Match {
         player2Points = 0;
     }
 
+    public void resetPlayersGames() {
+        player1Games = 0;
+        player2Games = 0;
+    }
+
 }
