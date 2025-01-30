@@ -15,9 +15,7 @@ public class StandardScoringStrategy implements ScoringStrategy {
         MatchState currentMatchState = match.getMatchState();
 
         if (currentMatchState == MatchState.ADVANTAGE) {
-            if (match.getWinnerPoints(winnerId) == 3) {
-                match.removePointFromLoser(winnerId);
-            }
+            scorePointsByAdvantageRules(match, winnerId);
         } else {
             match.addPointToWinner(winnerId);
         }
@@ -27,6 +25,7 @@ public class StandardScoringStrategy implements ScoringStrategy {
         }
         if (isSetWon(match)) {
             match.addSetToWinner(winnerId);
+            match.resetPlayersGames();
         }
     }
 
@@ -48,16 +47,16 @@ public class StandardScoringStrategy implements ScoringStrategy {
         MatchState matchState = match.getMatchState();
         int player1Points = match.getPlayer1Points();
         int player2Points = match.getPlayer2Points();
-        boolean isTwoPointsDifference = Math.abs(player1Points - player2Points) == 2;
+        boolean isTwoOrMorePointsDifference = Math.abs(player1Points - player2Points) >= 2;
 
         if (matchState == MatchState.INITIAL || matchState == MatchState.NORMAL) {
-            return player1Points == 4 || player2Points == 4 && isTwoPointsDifference;
+            return player1Points == 4 || player2Points == 4 && isTwoOrMorePointsDifference;
         }
         if (matchState == MatchState.ADVANTAGE) {
-            return isTwoPointsDifference;
+            return isTwoOrMorePointsDifference;
         }
         if (matchState == MatchState.TIEBREAK) {
-            return player1Points >= 7 || player2Points >= 7 && isTwoPointsDifference;
+            return player1Points >= 7 || player2Points >= 7 && isTwoOrMorePointsDifference;
         }
         return false;
     }
@@ -67,10 +66,10 @@ public class StandardScoringStrategy implements ScoringStrategy {
         int player1Games = match.getPlayer1Games();
         int player2Games = match.getPlayer2Games();
 
-        boolean isTwoGameDifferenceAtSixGames = player1Games == 6 || player2Games == 6 && Math.abs(player1Games - player2Games) == 2;
+        boolean isTwoOrMoreGameDifferenceAtSixGames = (player1Games == 6 || player2Games == 6) && Math.abs(player1Games - player2Games) >= 2;
         boolean isOneGameDifferenceAtTieBreak = Math.abs(player1Games - player2Games) == 1 && matchState == MatchState.TIEBREAK;
 
-        return isOneGameDifferenceAtTieBreak || isTwoGameDifferenceAtSixGames;
+        return isOneGameDifferenceAtTieBreak || isTwoOrMoreGameDifferenceAtSixGames;
     }
 
     private boolean isMatchFinished(OngoingMatch match) {
@@ -102,6 +101,14 @@ public class StandardScoringStrategy implements ScoringStrategy {
         int player2Points = match.getPlayer2Points();
 
         return player1Points == player2Points && player1Points == 3;
+    }
+
+    private void scorePointsByAdvantageRules(OngoingMatch match, int winnerId) {
+        if (match.getWinnerPoints(winnerId) == 3) {
+            match.removePointFromLoser(winnerId);
+        } else {
+            match.addPointToWinner(winnerId);
+        }
     }
 
     private void setMatchWinner(OngoingMatch match) {
