@@ -3,7 +3,7 @@ package com.dimasukimas.tennisscoreboard.enums;
 import lombok.Getter;
 
 @Getter
-public enum TennisPoints {
+public enum TennisPointsView {
     LOVE("0"),
     FIFTEEN("15"),
     THIRTY("30"),
@@ -12,7 +12,7 @@ public enum TennisPoints {
 
     private final String points;
 
-    TennisPoints(String points) {
+    TennisPointsView(String points) {
         this.points = points;
     }
 
