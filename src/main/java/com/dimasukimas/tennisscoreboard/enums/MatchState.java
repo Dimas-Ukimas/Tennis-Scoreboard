@@ -1,11 +1,11 @@
 package com.dimasukimas.tennisscoreboard.enums;
 
-public enum MatchState {
+public enum ScoreState {
 
     INITIAL,
     NORMAL,
     DEUCE,
     ADVANTAGE,
     TIEBREAK,
-    FINISHED
+    FINAL
 }
