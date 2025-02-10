@@ -3,22 +3,29 @@ package com.dimasukimas.tennisscoreboard.service.scoring;
 import com.dimasukimas.tennisscoreboard.enums.MatchState;
 import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
 
-public class StandardScoringStrategy implements ScoringStrategy {
+public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<OngoingMatch, Integer > {
 
-    private final int SETS_TO_WIN_MATCH = 2;
-    private final int GAMES_TO_WIN_SET = 6;
-    private final int POINTS_TO_WIN_GAME = 4;
-    private final int TIEBREAK_THRESHOLD_POINTS_TO_WIN = 7;
-    private final int TIEBREAK_THRESHOLD_GAMES = 6;
-    private final int DEUCE_POINTS = 3;
+    protected int MIN_POINTS_TO_WIN_TIEBREAK;
+    protected int GAMES_TO_START_TIEBREAK;
+    protected int DEUCE_POINTS;
 
     @Override
-    public void calculateScore(OngoingMatch match, int winnerId) {
+    protected void initializeRulesParameters() {
+        SETS_TO_WIN_MATCH = 2;
+        GAMES_TO_WIN_SET = 6;
+        POINTS_TO_WIN_GAME = 4;
+        MIN_POINTS_TO_WIN_TIEBREAK =7;
+        GAMES_TO_START_TIEBREAK = 6;
+        DEUCE_POINTS = 3;
+    }
+
+    @Override
+    public void calculateScore(OngoingMatch match, Integer winnerId) {
         setNextScore(match, winnerId);
         updateMatchStateAndWinner(match);
     }
 
-    private void setNextScore(OngoingMatch match, int winnerId) {
+    protected void setNextScore(OngoingMatch match, int winnerId) {
         MatchState currentMatchState = match.getMatchState();
 
         if (currentMatchState == MatchState.ADVANTAGE) {
@@ -36,7 +43,7 @@ public class StandardScoringStrategy implements ScoringStrategy {
         }
     }
 
-    private void updateMatchStateAndWinner(OngoingMatch match) {
+    protected void updateMatchStateAndWinner(OngoingMatch match) {
         if (isMatchFinished(match)) {
             match.setMatchState(MatchState.FINISHED);
             setMatchWinner(match);
@@ -50,35 +57,14 @@ public class StandardScoringStrategy implements ScoringStrategy {
             match.setMatchState(MatchState.NORMAL);
     }
 
-    private void addSetToWinner(OngoingMatch match, int winnerId) {
-        if (winnerId == match.getPlayer1().getId()) {
-            match.setPlayer1Sets(match.getPlayer1Sets() + 1);
-        } else
-            match.setPlayer2Sets(match.getPlayer2Sets() + 1);
-    }
-
-    private void addGameToWinner(OngoingMatch match, int winnerId) {
-        if (winnerId == match.getPlayer1().getId()) {
-            match.setPlayer1Games(match.getPlayer1Games() + 1);
-        } else
-            match.setPlayer2Games(match.getPlayer2Games() + 1);
-    }
-
-    private void addPointToWinner(OngoingMatch match, int winnerId) {
-        if (winnerId == match.getPlayer1().getId()) {
-            match.setPlayer1Points(match.getPlayer1Points() + 1);
-        } else
-            match.setPlayer2Points(match.getPlayer2Points() + 1);
-    }
-
-    private boolean isGameWon(OngoingMatch match) {
+    protected boolean isGameWon(OngoingMatch match) {
         MatchState matchState = match.getMatchState();
         int player1Points = match.getPlayer1Points();
         int player2Points = match.getPlayer2Points();
 
         boolean hasTwoOrMorePointsDifference = Math.abs(player1Points - player2Points) >= 2;
         boolean hasRequiredPointsToWinGame = player1Points == POINTS_TO_WIN_GAME || player2Points == POINTS_TO_WIN_GAME;
-        boolean hasRequiredPointsToWinTiebreak = player1Points >= TIEBREAK_THRESHOLD_POINTS_TO_WIN || player2Points >= TIEBREAK_THRESHOLD_POINTS_TO_WIN;
+        boolean hasRequiredPointsToWinTiebreak = player1Points >= MIN_POINTS_TO_WIN_TIEBREAK || player2Points >= MIN_POINTS_TO_WIN_TIEBREAK;
 
         if (matchState == MatchState.NORMAL) {
             return hasRequiredPointsToWinGame && hasTwoOrMorePointsDifference;
@@ -92,7 +78,7 @@ public class StandardScoringStrategy implements ScoringStrategy {
         return false;
     }
 
-    private boolean isSetWon(OngoingMatch match) {
+    protected boolean isSetWon(OngoingMatch match) {
         int player1Games = match.getPlayer1Games();
         int player2Games = match.getPlayer2Games();
         int gamesDifference = Math.abs(player1Games - player2Games);
@@ -107,21 +93,21 @@ public class StandardScoringStrategy implements ScoringStrategy {
         return hasSetWinConditionAtTiebreak || hasSetWinConditionWithoutTiebreak;
     }
 
-    private boolean isMatchFinished(OngoingMatch match) {
+    protected boolean isMatchFinished(OngoingMatch match) {
         int player1Sets = match.getPlayer1Sets();
         int player2Sets = match.getPlayer2Sets();
 
         return player1Sets == SETS_TO_WIN_MATCH || player2Sets == SETS_TO_WIN_MATCH;
     }
 
-    private boolean isTieBreak(OngoingMatch match) {
+    protected boolean isTieBreak(OngoingMatch match) {
         int player1Games = match.getPlayer1Games();
         int player2Games = match.getPlayer2Games();
 
-        return player1Games == player2Games && player1Games == TIEBREAK_THRESHOLD_GAMES;
+        return player1Games == player2Games && player1Games == GAMES_TO_START_TIEBREAK;
     }
 
-    private boolean isAdvantage(OngoingMatch match) {
+    protected boolean isAdvantage(OngoingMatch match) {
         int player1Points = match.getPlayer1Points();
         int player2Points = match.getPlayer2Points();
 
@@ -131,14 +117,14 @@ public class StandardScoringStrategy implements ScoringStrategy {
         return hasRequiredPointsToWinGame && hasOnePointDifference;
     }
 
-    private boolean isDeuce(OngoingMatch match) {
+    protected boolean isDeuce(OngoingMatch match) {
         int player1Points = match.getPlayer1Points();
         int player2Points = match.getPlayer2Points();
 
         return player1Points == player2Points && player1Points == DEUCE_POINTS;
     }
 
-    private void scorePointsByAdvantageRules(OngoingMatch match, int winnerId) {
+    protected void scorePointsByAdvantageRules(OngoingMatch match, int winnerId) {
         int winnerPoints = (match.getPlayer1().getId() == winnerId)
                 ? match.getPlayer1Points()
                 : match.getPlayer2Points();
@@ -150,15 +136,7 @@ public class StandardScoringStrategy implements ScoringStrategy {
         }
     }
 
-    private void removePointFromLoser(OngoingMatch match, int winnerId) {
-        if (match.getPlayer1().getId() == winnerId) {
-            match.setPlayer2Points(match.getPlayer2Points() - 1);
-        } else {
-            match.setPlayer1Points(match.getPlayer1Points() - 1);
-        }
-    }
-
-    private void setMatchWinner(OngoingMatch match) {
+    protected void setMatchWinner(OngoingMatch match) {
         if (isMatchFinished(match)) {
             if (match.getPlayer1Sets() == SETS_TO_WIN_MATCH) {
                 match.setWinner(match.getPlayer1());
@@ -168,13 +146,4 @@ public class StandardScoringStrategy implements ScoringStrategy {
         }
     }
 
-    private void resetPlayersPoints(OngoingMatch match) {
-        match.setPlayer1Points(0);
-        match.setPlayer2Points(0);
-    }
-
-    private void resetPlayersGames(OngoingMatch match) {
-        match.setPlayer1Games(0);
-        match.setPlayer2Games(0);
-    }
 }

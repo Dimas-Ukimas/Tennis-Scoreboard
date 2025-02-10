@@ -1,9 +1,7 @@
 package com.dimasukimas.tennisscoreboard.service.scoring;
 
-import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
+public interface ScoringStrategy <T,I> {
 
-public interface ScoringStrategy {
-
-    void calculateScore (OngoingMatch match, int winnerId);
+    void calculateScore (T t, I i);
 
 }
