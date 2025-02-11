@@ -16,5 +16,5 @@ public class MatchScoreResponseDto {
     String player2Points;
     String player2Games;
     String player2Sets;
-
+    int winnerId;
 }

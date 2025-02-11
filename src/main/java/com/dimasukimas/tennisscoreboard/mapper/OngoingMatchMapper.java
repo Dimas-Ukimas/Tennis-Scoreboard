@@ -1,8 +1,8 @@
 package com.dimasukimas.tennisscoreboard.mapper;
 
-import com.dimasukimas.tennisscoreboard.dto.MatchScoreResponseDto;
+import com.dimasukimas.tennisscoreboard.model.dto.MatchScoreResponseDto;
 import com.dimasukimas.tennisscoreboard.enums.MatchState;
-import com.dimasukimas.tennisscoreboard.enums.TennisPoints;
+import com.dimasukimas.tennisscoreboard.enums.TennisPointsView;
 import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -25,26 +25,26 @@ public interface OngoingMatchMapper {
     @Mapping(source = "player2Points", target = "player2Points", qualifiedByName = "convertScore")
     @Mapping(source = "player2Games", target = "player2Games")
     @Mapping(source = "player2Sets", target = "player2Sets")
+    @Mapping(source = "winner.id", target = "winnerId")
     MatchScoreResponseDto toMatchScoreDto(OngoingMatch match, @Context MatchState matchState);
 
     @Named("convertScore")
     default String convertScore(int score, @Context MatchState matchState) {
-
         if (matchState != MatchState.TIEBREAK) {
             if (score == 0) {
-                return TennisPoints.LOVE.getPoints();
+                return TennisPointsView.LOVE.getPoints();
             }
             if (score == 1) {
-                return TennisPoints.FIFTEEN.getPoints();
+                return TennisPointsView.FIFTEEN.getPoints();
             }
             if (score == 2) {
-                return TennisPoints.THIRTY.getPoints();
+                return TennisPointsView.THIRTY.getPoints();
             }
             if (score == 3) {
-                return TennisPoints.FORTY.getPoints();
+                return TennisPointsView.FORTY.getPoints();
             }
             if (matchState == MatchState.ADVANTAGE && score == 4) {
-                return TennisPoints.ADVANTAGE.getPoints();
+                return TennisPointsView.ADVANTAGE.getPoints();
             }
         }
         return String.valueOf(score);
