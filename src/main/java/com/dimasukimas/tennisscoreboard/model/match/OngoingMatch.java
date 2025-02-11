@@ -21,10 +21,9 @@ public class OngoingMatch extends Match {
     private int player2Games;
     private int player2Sets;
 
-    public OngoingMatch(Player player1, Player player2) {
+    public OngoingMatch(Player player1, Player player2, ScoringStrategyType strategyType) {
         super(player1, player2);
-        this.scoringStrategyType = ScoringStrategyType.STANDARD;
+        this.scoringStrategyType = strategyType;
         this.matchState = MatchState.NORMAL;
     }
-
 }
