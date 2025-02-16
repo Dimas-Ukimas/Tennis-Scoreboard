@@ -3,7 +3,7 @@ package com.dimasukimas.tennisscoreboard.service.scoring;
 import com.dimasukimas.tennisscoreboard.enums.MatchState;
 import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
 
-public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<OngoingMatch, Integer > {
+public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<OngoingMatch, Integer> {
 
     protected int MIN_POINTS_TO_WIN_TIEBREAK;
     protected int GAMES_TO_START_TIEBREAK;
@@ -14,18 +14,19 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
         SETS_TO_WIN_MATCH = 2;
         GAMES_TO_WIN_SET = 6;
         POINTS_TO_WIN_GAME = 4;
-        MIN_POINTS_TO_WIN_TIEBREAK =7;
+        MIN_POINTS_TO_WIN_TIEBREAK = 7;
         GAMES_TO_START_TIEBREAK = 6;
         DEUCE_POINTS = 3;
     }
 
     @Override
     public void calculateScore(OngoingMatch match, Integer winnerId) {
-        setNextScore(match, winnerId);
-        updateMatchStateAndWinner(match);
+        updateMatchScore(match, winnerId);
+        updateMatchState(match);
+        setMatchWinnerIfFinished(match);
     }
 
-    protected void setNextScore(OngoingMatch match, int winnerId) {
+    protected void updateMatchScore(OngoingMatch match, int winnerId) {
         MatchState currentMatchState = match.getMatchState();
 
         if (currentMatchState == MatchState.ADVANTAGE) {
@@ -43,14 +44,11 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
         }
     }
 
-    protected void updateMatchStateAndWinner(OngoingMatch match) {
+    protected void updateMatchState(OngoingMatch match) {
         if (isMatchFinished(match)) {
             match.setMatchState(MatchState.FINISHED);
-            setMatchWinner(match);
         } else if (isTieBreak(match)) {
             match.setMatchState(MatchState.TIEBREAK);
-        } else if (isDeuce(match)) {
-            match.setMatchState(MatchState.DEUCE);
         } else if (isAdvantage(match)) {
             match.setMatchState(MatchState.ADVANTAGE);
         } else
@@ -88,7 +86,7 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
         boolean hasRequiredGamesToWinSet = player1Games == GAMES_TO_WIN_SET || player2Games == GAMES_TO_WIN_SET;
 
         boolean hasSetWinConditionWithoutTiebreak = hasTwoOrMoreGamesDifference && hasRequiredGamesToWinSet;
-        boolean hasSetWinConditionAtTiebreak = hasOneGameDifference && match.getMatchState()==MatchState.TIEBREAK;
+        boolean hasSetWinConditionAtTiebreak = hasOneGameDifference && match.getMatchState() == MatchState.TIEBREAK;
 
         return hasSetWinConditionAtTiebreak || hasSetWinConditionWithoutTiebreak;
     }
@@ -114,14 +112,7 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
         boolean hasRequiredPointsToWinGame = player1Points == POINTS_TO_WIN_GAME || player2Points == POINTS_TO_WIN_GAME;
         boolean hasOnePointDifference = Math.abs(player1Points - player2Points) == 1;
 
-        return hasRequiredPointsToWinGame && hasOnePointDifference;
-    }
-
-    protected boolean isDeuce(OngoingMatch match) {
-        int player1Points = match.getPlayer1Points();
-        int player2Points = match.getPlayer2Points();
-
-        return player1Points == player2Points && player1Points == DEUCE_POINTS;
+        return !isTieBreak(match) && hasRequiredPointsToWinGame && hasOnePointDifference;
     }
 
     protected void scorePointsByAdvantageRules(OngoingMatch match, int winnerId) {
@@ -136,7 +127,7 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
         }
     }
 
-    protected void setMatchWinner(OngoingMatch match) {
+    protected void setMatchWinnerIfFinished(OngoingMatch match) {
         if (isMatchFinished(match)) {
             if (match.getPlayer1Sets() == SETS_TO_WIN_MATCH) {
                 match.setWinner(match.getPlayer1());
