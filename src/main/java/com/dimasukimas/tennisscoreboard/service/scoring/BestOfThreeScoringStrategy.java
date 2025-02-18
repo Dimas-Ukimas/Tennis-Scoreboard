@@ -23,7 +23,6 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
     public void calculateScore(OngoingMatch match, Integer winnerId) {
         updateMatchScore(match, winnerId);
         updateMatchState(match);
-        setMatchWinnerIfFinished(match);
     }
 
     protected void updateMatchScore(OngoingMatch match, int winnerId) {
@@ -126,15 +125,4 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
             addPointToWinner(match, winnerId);
         }
     }
-
-    protected void setMatchWinnerIfFinished(OngoingMatch match) {
-        if (isMatchFinished(match)) {
-            if (match.getPlayer1Sets() == SETS_TO_WIN_MATCH) {
-                match.setWinner(match.getPlayer1());
-            } else {
-                match.setWinner(match.getPlayer2());
-            }
-        }
-    }
-
 }

@@ -20,8 +20,19 @@ public interface OngoingMatchMapper {
     @Mapping(source = "player2.id", target = "player2Id")
     @Mapping(source = "player2.name", target = "player2Name")
     @Mapping(source = "player2Points", target = "player2Points", qualifiedByName = "convertScore")
-    @Mapping(source = "winner.id", target = "winnerId")
+    @Mapping(target = "winnerId", constant = "0")
     MatchScoreResponseDto toDto(OngoingMatch match, @Context MatchState matchState);
+
+
+    @Mapping(source = "match.player1.id", target = "player1Id")
+    @Mapping(source = "match.player1.name", target = "player1Name")
+    @Mapping(source = "match.player1Points", target = "player1Points", qualifiedByName = "convertScore")
+    @Mapping(source = "match.player2.id", target = "player2Id")
+    @Mapping(source = "match.player2.name", target = "player2Name")
+    @Mapping(source = "match.player2Points", target = "player2Points", qualifiedByName = "convertScore")
+    @Mapping(source = "winnerId", target = "winnerId")
+    MatchScoreResponseDto toDto(OngoingMatch match, @Context MatchState matchState, int winnerId);
+
 
     @Named("convertScore")
     default String convertScore(int score, @Context MatchState matchState) {
