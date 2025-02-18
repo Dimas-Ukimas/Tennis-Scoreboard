@@ -1,48 +1,60 @@
 package com.dimasukimas.tennisscoreboard.service;
 
-import com.dimasukimas.tennisscoreboard.dto.MatchScoreResponseDto;
-import com.dimasukimas.tennisscoreboard.mapper.OngoingMatchMapper;
-import com.dimasukimas.tennisscoreboard.model.match.FinishedMatch;
 import com.dimasukimas.tennisscoreboard.enums.MatchState;
+import com.dimasukimas.tennisscoreboard.mapper.OngoingMatchMapper;
+import com.dimasukimas.tennisscoreboard.model.Player;
+import com.dimasukimas.tennisscoreboard.model.dto.MatchScoreResponseDto;
+import com.dimasukimas.tennisscoreboard.model.match.FinishedMatch;
 import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
+import com.dimasukimas.tennisscoreboard.service.scoring.ScoringStrategy;
+import com.dimasukimas.tennisscoreboard.service.scoring.ScoringStrategyFactory;
+import lombok.Getter;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public class MatchScoreCalculationService {
-
-    private static MatchScoreCalculationService instance;
-
     private final OngoingMatchesService ongoingMatchesService;
     private final FinishedMatchesPersistenceService finishedMatchesPersistenceService;
 
-    private MatchScoreCalculationService(OngoingMatchesService ongoingMatchesService, FinishedMatchesPersistenceService finishedMatchesPersistenceService) {
-    this.ongoingMatchesService = ongoingMatchesService;
-    this.finishedMatchesPersistenceService = finishedMatchesPersistenceService;
+    private MatchScoreCalculationService() {
+        this.ongoingMatchesService = OngoingMatchesService.getInstance();
+        this.finishedMatchesPersistenceService = FinishedMatchesPersistenceService.getInstance();
     }
 
-    public static synchronized MatchScoreCalculationService getInstance(OngoingMatchesService ongoingMatchesService, FinishedMatchesPersistenceService finishedMatchesPersistenceService) {
-        if (instance == null) {
-            instance = new MatchScoreCalculationService(ongoingMatchesService, finishedMatchesPersistenceService);
-        }
-        return instance;
-    }
+    @Getter
+    private final static MatchScoreCalculationService instance = new MatchScoreCalculationService();
 
-    public MatchScoreResponseDto updateMatchScoreOrFinishMatch(UUID matchUuid, int winnerId) {
-        Optional<OngoingMatch> ongoingMatch = ongoingMatchesService.getMatch(matchUuid);
+    public MatchScoreResponseDto processMatch(UUID matchUuid, int winnerId) {
+        OngoingMatch match = ongoingMatchesService.getMatch(matchUuid);
 
-        OngoingMatch match = ongoingMatch.orElseThrow();
-        match.updateScore(winnerId);
+        updateMatchScore(winnerId, match);
 
         if (match.getMatchState() == MatchState.FINISHED) {
-            ongoingMatchesService.deleteFinishedMatch(matchUuid);
-            FinishedMatch finishedMatch = new FinishedMatch(match);
-            finishedMatchesPersistenceService.persistMatch(finishedMatch);
+            ongoingMatchesService.deleteMatch(matchUuid);
+            saveFinishedMatch(winnerId, match);
 
+            return OngoingMatchMapper.INSTANCE.toDto(match, match.getMatchState(), winnerId);
         }
 
-        return OngoingMatchMapper.INSTANCE.toMatchScoreDto(match, match.getMatchState());
+        return OngoingMatchMapper.INSTANCE.toDto(match, match.getMatchState());
     }
 
+    private void updateMatchScore(int winnerId, OngoingMatch match) {
+        ScoringStrategy<OngoingMatch, Integer> scoringStrategy = ScoringStrategyFactory.getStrategy(match.getScoringStrategyType());
+        scoringStrategy.calculateScore(match, winnerId);
+    }
+
+    private void saveFinishedMatch(int winnerId, OngoingMatch match) {
+            Player matchWinner = winnerId == match.getPlayer1().getId()
+                    ? match.getPlayer1()
+                    : match.getPlayer2();
+
+            FinishedMatch finishedMatch = new FinishedMatch(
+                    match.getPlayer1(),
+                    match.getPlayer2(),
+                    matchWinner
+            );
+            finishedMatchesPersistenceService.persistMatch(finishedMatch);
+    }
 
 }
