@@ -14,6 +14,9 @@ public class FinishedMatch extends Match{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @ManyToOne
+    protected Player winner;
+
     public FinishedMatch(Player player1, Player player2, Player winner){
         super(player1, player2);
         this.winner = winner;
