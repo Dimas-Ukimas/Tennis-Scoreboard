@@ -1,8 +1,9 @@
 package com.dimasukimas.tennisscoreboard.controller;
 
-import com.dimasukimas.tennisscoreboard.model.dto.MatchScoreResponseDto;
+import com.dimasukimas.tennisscoreboard.dto.OngoingMatchResponseDto;
 import com.dimasukimas.tennisscoreboard.service.MatchScoreCalculationService;
 import com.dimasukimas.tennisscoreboard.service.OngoingMatchesService;
+import com.dimasukimas.tennisscoreboard.util.DataValidationUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,26 +20,23 @@ public class MatchScoreController extends HttpServlet {
     private final MatchScoreCalculationService matchScoreCalculationService = MatchScoreCalculationService.getInstance();
 
 public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-    response.setContentType("text/html; charset=UTF-8");
-    response.setCharacterEncoding("UTF-8");
     String matchUuid = request.getParameter("uuid");
+    UUID validMatchUuid = DataValidationUtil.parseUuid(matchUuid);
+    OngoingMatchResponseDto matchScore = ongoingMatchesService.getMatchScore(validMatchUuid);
 
-    MatchScoreResponseDto matchScore = ongoingMatchesService.getMatchScore(matchUuid);
     request.setAttribute("match", matchScore);
-
     request.getRequestDispatcher("match-score.jsp").forward(request, response);
 
 }
 
 public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-    String uuid = request.getParameter("uuid");
+    String matchUuid = request.getParameter("uuid");
+    Long winnerId = Long.parseLong(request.getParameter("playerId"));
 
-     UUID matchUuid = UUID.fromString(uuid);
-     int winnerId = Integer.parseInt(request.getParameter("playerId"));
+    UUID validMatchUuid = DataValidationUtil.parseUuid(matchUuid);
 
-    MatchScoreResponseDto updatedMatch = matchScoreCalculationService.updateMatchScoreOrFinishMatch(matchUuid, winnerId);
+    OngoingMatchResponseDto updatedMatch = matchScoreCalculationService.processMatch(validMatchUuid, winnerId);
     request.setAttribute("match", updatedMatch);
     request.getRequestDispatcher("match-score.jsp").forward(request, response);
 

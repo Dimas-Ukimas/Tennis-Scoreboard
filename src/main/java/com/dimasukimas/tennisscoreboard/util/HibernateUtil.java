@@ -1,7 +1,7 @@
 package com.dimasukimas.tennisscoreboard.util;
 
-import com.dimasukimas.tennisscoreboard.model.match.FinishedMatch;
-import com.dimasukimas.tennisscoreboard.model.Player;
+import com.dimasukimas.tennisscoreboard.model.entity.FinishedMatch;
+import com.dimasukimas.tennisscoreboard.model.entity.Player;
 import lombok.Getter;
 import lombok.experimental.UtilityClass;
 import org.hibernate.SessionFactory;

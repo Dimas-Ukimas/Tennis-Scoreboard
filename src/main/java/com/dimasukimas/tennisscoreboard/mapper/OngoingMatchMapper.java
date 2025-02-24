@@ -1,9 +1,9 @@
 package com.dimasukimas.tennisscoreboard.mapper;
 
-import com.dimasukimas.tennisscoreboard.model.dto.MatchScoreResponseDto;
-import com.dimasukimas.tennisscoreboard.enums.MatchState;
-import com.dimasukimas.tennisscoreboard.enums.TennisPoints;
-import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
+import com.dimasukimas.tennisscoreboard.dto.OngoingMatchResponseDto;
+import com.dimasukimas.tennisscoreboard.enumeration.MatchState;
+import com.dimasukimas.tennisscoreboard.enumeration.TennisPoints;
+import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -21,7 +21,7 @@ public interface OngoingMatchMapper {
     @Mapping(source = "player2.name", target = "player2Name")
     @Mapping(source = "player2Points", target = "player2Points", qualifiedByName = "convertScore")
     @Mapping(target = "winnerId", constant = "0")
-    MatchScoreResponseDto toDto(OngoingMatch match, @Context MatchState matchState);
+    OngoingMatchResponseDto toDto(OngoingMatch match, @Context MatchState matchState);
 
 
     @Mapping(source = "match.player1.id", target = "player1Id")
@@ -31,7 +31,7 @@ public interface OngoingMatchMapper {
     @Mapping(source = "match.player2.name", target = "player2Name")
     @Mapping(source = "match.player2Points", target = "player2Points", qualifiedByName = "convertScore")
     @Mapping(source = "winnerId", target = "winnerId")
-    MatchScoreResponseDto toDto(OngoingMatch match, @Context MatchState matchState, int winnerId);
+    OngoingMatchResponseDto toDto(OngoingMatch match, @Context MatchState matchState, Long winnerId);
 
 
     @Named("convertScore")

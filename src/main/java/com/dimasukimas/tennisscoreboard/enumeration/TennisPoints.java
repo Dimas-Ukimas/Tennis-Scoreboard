@@ -1,4 +1,4 @@
-package com.dimasukimas.tennisscoreboard.enums;
+package com.dimasukimas.tennisscoreboard.enumeration;
 
 import lombok.Getter;
 

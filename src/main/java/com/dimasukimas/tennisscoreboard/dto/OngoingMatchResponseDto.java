@@ -1,6 +1,6 @@
-package com.dimasukimas.tennisscoreboard.model.dto;
+package com.dimasukimas.tennisscoreboard.dto;
 
-public record MatchScoreResponseDto(
+public record OngoingMatchResponseDto(
     int player1Id,
     String player1Name,
     String player1Points,

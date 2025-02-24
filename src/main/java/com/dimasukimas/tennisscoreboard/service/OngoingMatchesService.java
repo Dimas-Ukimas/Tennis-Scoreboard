@@ -1,96 +1,68 @@
 package com.dimasukimas.tennisscoreboard.service;
 
-import com.dimasukimas.tennisscoreboard.dto.MatchScoreResponseDto;
-import com.dimasukimas.tennisscoreboard.enums.MatchState;
+import com.dimasukimas.tennisscoreboard.dto.OngoingMatchResponseDto;
+import com.dimasukimas.tennisscoreboard.enumeration.MatchState;
+import com.dimasukimas.tennisscoreboard.exception.NotFoundException;
 import com.dimasukimas.tennisscoreboard.mapper.OngoingMatchMapper;
-import com.dimasukimas.tennisscoreboard.model.Player;
-import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
+import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
+import com.dimasukimas.tennisscoreboard.model.entity.Player;
 import com.dimasukimas.tennisscoreboard.repository.PlayerRepository;
-import com.dimasukimas.tennisscoreboard.service.scoring.ScoringStrategy;
-import com.dimasukimas.tennisscoreboard.service.scoring.StandardScoringStrategy;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class OngoingMatchesService {
-
-    private final Map<UUID, OngoingMatch> ongoingMatches = new HashMap<>();
+    private final Map<UUID, OngoingMatch> ongoingMatches = new ConcurrentHashMap<>();
     private final PlayerRepository playerRepository;
-    private final SessionFactory sessionFactory;
-    private static OngoingMatchesService instance;
+    private final OngoingMatchMapper mapper = OngoingMatchMapper.INSTANCE;
 
-    private OngoingMatchesService(PlayerRepository playerRepository, SessionFactory sessionFactory) {
-
-        this.playerRepository = playerRepository;
-        this.sessionFactory = sessionFactory;
+    private OngoingMatchesService() {
+        this.playerRepository = PlayerRepository.getInstance();
     }
 
-    public synchronized static OngoingMatchesService getInstance(PlayerRepository playerRepository, SessionFactory sessionFactory) {
-        if (instance == null) {
-            instance = new OngoingMatchesService(playerRepository, sessionFactory);
-        }
-        return instance;
-    }
-
+    @Getter
+    private final static OngoingMatchesService instance = new OngoingMatchesService();
 
     public UUID createNewMatch(String player1Name, String player2Name) {
-
-        ScoringStrategy scoringStrategy = new StandardScoringStrategy();
-        OngoingMatch match = new OngoingMatch(scoringStrategy);
         UUID matchUuid = UUID.randomUUID();
 
-        try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
+        Player player1 = findOrCreatePlayer(player1Name);
+        Player player2 = findOrCreatePlayer(player2Name);
 
-            Player player1 = getOrCreatePlayer(session, player1Name);
-            Player player2 = getOrCreatePlayer(session, player2Name);
+        OngoingMatch match = new OngoingMatch(player1, player2);
+        ongoingMatches.put(matchUuid, match);
 
-            session.getTransaction().commit();
-
-            match.setPlayer1(player1);
-            match.setPlayer2(player2);
-            ongoingMatches.put(matchUuid, match);
-
-            return matchUuid;
-
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create a new match", e);
-        }
+        return matchUuid;
     }
 
-    public void deleteFinishedMatch(UUID matchUuid) {
-        ongoingMatches.remove(matchUuid);
-    }
+    private Player findOrCreatePlayer(String name) {
 
-    private Player getOrCreatePlayer(Session session, String name) {
-
-        return playerRepository.findPlayerByName(session, name).orElseGet(() -> {
+        return playerRepository.findPlayerByName(name).orElseGet(() -> {
             Player newPlayer = new Player(name);
-
-            try {
-                playerRepository.persist(session, newPlayer);
-                return newPlayer;
-            } catch (Exception e) {
-                throw new RuntimeException();
-            }
+            return playerRepository.persist(newPlayer);
         });
     }
 
-    public Optional<OngoingMatch> getMatch(UUID matchUuid) {
-
-        return Optional.ofNullable(ongoingMatches.get(matchUuid));
+    protected void deleteMatch(UUID matchUuid) {
+        ongoingMatches.remove(matchUuid);
     }
 
+    protected OngoingMatch getMatch(UUID matchUuid) {
+        return Optional.ofNullable(ongoingMatches.get(matchUuid))
+                .orElseThrow(() -> {
+                    log.warn("Match with UUID {} not found", matchUuid);
+                    return new NotFoundException("Match " + matchUuid + " not found");
+                });
+    }
 
-    public MatchScoreResponseDto getMatchScore(String uuid){
-
-        UUID matchUuid = UUID.fromString(uuid);
+    public OngoingMatchResponseDto getMatchScore(UUID matchUuid) {
         MatchState matchState = ongoingMatches.get(matchUuid).getMatchState();
 
-        return OngoingMatchMapper.INSTANCE.toMatchScoreDto(ongoingMatches.get(matchUuid), matchState);
+        return mapper.toDto(ongoingMatches.get(matchUuid), matchState);
     }
 }

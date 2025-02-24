@@ -1,9 +1,9 @@
 package com.dimasukimas.tennisscoreboard.service.scoring;
 
-import com.dimasukimas.tennisscoreboard.enums.MatchState;
-import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
+import com.dimasukimas.tennisscoreboard.enumeration.MatchState;
+import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
 
-public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<OngoingMatch, Integer> {
+public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<OngoingMatch, Long> {
 
     protected int MIN_POINTS_TO_WIN_TIEBREAK;
     protected int GAMES_TO_START_TIEBREAK;
@@ -20,12 +20,12 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
     }
 
     @Override
-    public void calculateScore(OngoingMatch match, Integer winnerId) {
+    public void calculateScore(OngoingMatch match, Long winnerId) {
         updateMatchScore(match, winnerId);
         updateMatchState(match);
     }
 
-    protected void updateMatchScore(OngoingMatch match, int winnerId) {
+    protected void updateMatchScore(OngoingMatch match, Long winnerId) {
         MatchState currentMatchState = match.getMatchState();
 
         if (currentMatchState == MatchState.ADVANTAGE) {
@@ -114,7 +114,7 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
         return !isTieBreak(match) && hasRequiredPointsToWinGame && hasOnePointDifference;
     }
 
-    protected void scorePointsByAdvantageRules(OngoingMatch match, int winnerId) {
+    protected void scorePointsByAdvantageRules(OngoingMatch match, Long winnerId) {
         int winnerPoints = (match.getPlayer1().getId() == winnerId)
                 ? match.getPlayer1Points()
                 : match.getPlayer2Points();

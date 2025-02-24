@@ -1,18 +1,15 @@
 package com.dimasukimas.tennisscoreboard.service;
 
+import com.dimasukimas.tennisscoreboard.dto.FinishedMatchResponseDto;
+import com.dimasukimas.tennisscoreboard.dto.PaginatedMatchesResponseDto;
 import com.dimasukimas.tennisscoreboard.mapper.FinishedMatchMapper;
 import com.dimasukimas.tennisscoreboard.mapper.PaginatedMatchesMapper;
-import com.dimasukimas.tennisscoreboard.model.Player;
-import com.dimasukimas.tennisscoreboard.model.dto.FinishedMatchDto;
-import com.dimasukimas.tennisscoreboard.model.dto.PaginatedMatchesDto;
-import com.dimasukimas.tennisscoreboard.model.match.FinishedMatch;
-import com.dimasukimas.tennisscoreboard.model.match.OngoingMatch;
+import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
+import com.dimasukimas.tennisscoreboard.model.entity.FinishedMatch;
+import com.dimasukimas.tennisscoreboard.model.entity.Player;
 import com.dimasukimas.tennisscoreboard.repository.MatchRepository;
-import com.dimasukimas.tennisscoreboard.util.HibernateUtil;
 import com.dimasukimas.tennisscoreboard.util.PaginationUtil;
 import lombok.Getter;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -20,53 +17,45 @@ import java.util.function.LongSupplier;
 
 public class FinishedMatchesPersistenceService {
 
-    private final SessionFactory sessionFactory;
     private final MatchRepository matchRepository;
+    private static final FinishedMatchMapper matchMapper = FinishedMatchMapper.INSTANCE;
+    private static final PaginatedMatchesMapper pageMapper = PaginatedMatchesMapper.INSTANCE;
 
     @Getter
     private static final FinishedMatchesPersistenceService instance = new FinishedMatchesPersistenceService();
 
     private FinishedMatchesPersistenceService() {
-        this.sessionFactory = HibernateUtil.getSessionFactory();
         this.matchRepository = MatchRepository.getInstance();
     }
 
-    public void persistMatch(FinishedMatch finishedMatch) {
-        try (Session session = sessionFactory.openSession()) {
-            session.beginTransaction();
-            matchRepository.persist(session, finishedMatch);
-            session.getTransaction().commit();
-        }
+    public void createAndPersistMatch(Player matchWinner, OngoingMatch match) {
+        Player player1 = match.getPlayer1();
+        Player player2 = match.getPlayer2();
+        FinishedMatch finishedMatch = new FinishedMatch(player1, player2, matchWinner);
+
+        matchRepository.persist(finishedMatch);
     }
 
-    public FinishedMatch createFinishedMatch(Player matchWinner, OngoingMatch match) {
-        return new FinishedMatch(
-                match.getPlayer1(),
-                match.getPlayer2(),
-                matchWinner
-        );
-    }
-
-    public PaginatedMatchesDto getAllPaginatedMatches(int pageNumber, int pageSize) {
+    public PaginatedMatchesResponseDto getAllPaginatedMatches(int pageNumber, int pageSize) {
         return getPaginatedMatches(pageNumber, pageSize,
                 matchRepository::countAllMatches,
                 matchRepository::findAllPaginatedMatches
         );
     }
 
-    public PaginatedMatchesDto getPlayerPaginatedMatches(int pageNumber, int pageSize, String playerName) {
+    public PaginatedMatchesResponseDto getPlayerPaginatedMatches(int pageNumber, int pageSize, String playerName) {
         return getPaginatedMatches(pageNumber, pageSize,
                 () -> matchRepository.countPlayerMatches(playerName),
                 (offset, limit) -> matchRepository.findPlayerPaginatedMatches(offset, limit, playerName)
         );
     }
 
-    private PaginatedMatchesDto getPaginatedMatches(
+    private PaginatedMatchesResponseDto getPaginatedMatches(
             int pageNumber, int pageSize,
             LongSupplier totalCountSupplier,
             BiFunction<Integer, Integer, List<FinishedMatch>> matchesFetcher) {
 
-        int offset = (pageNumber - 1) * pageSize;
+        int offset = PaginationUtil.calculateOffset(pageNumber, pageSize);
         long totalMatchesCount = totalCountSupplier.getAsLong();
         List<FinishedMatch> finishedMatches = matchesFetcher.apply(offset, pageSize);
 
@@ -76,11 +65,11 @@ public class FinishedMatchesPersistenceService {
         return convertToPaginatedDto(finishedMatches, totalPages, currentPage);
     }
 
-    private PaginatedMatchesDto convertToPaginatedDto(List<FinishedMatch> finishedMatches, int totalPages, int currentPage) {
-        List<FinishedMatchDto> finishedMatchesDto = finishedMatches.stream()
-                .map(FinishedMatchMapper.INSTANCE::toDto)
+    private PaginatedMatchesResponseDto convertToPaginatedDto(List<FinishedMatch> finishedMatches, int totalPages, int currentPage) {
+        List<FinishedMatchResponseDto> finishedMatchesDto = finishedMatches.stream()
+                .map(matchMapper::toDto)
                 .toList();
 
-        return PaginatedMatchesMapper.INSTANCE.toPage(finishedMatchesDto, currentPage, totalPages);
+        return pageMapper.toPage(finishedMatchesDto, currentPage, totalPages);
     }
 }
