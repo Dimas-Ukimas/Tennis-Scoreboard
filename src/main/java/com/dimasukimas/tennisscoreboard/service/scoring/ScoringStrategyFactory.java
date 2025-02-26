@@ -1,6 +1,5 @@
 package com.dimasukimas.tennisscoreboard.service.scoring;
 
-import com.dimasukimas.tennisscoreboard.enumeration.ScoringStrategyType;
 import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
 
 public class ScoringStrategyFactory {

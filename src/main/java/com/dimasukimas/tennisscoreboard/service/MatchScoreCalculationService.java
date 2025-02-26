@@ -1,25 +1,22 @@
 package com.dimasukimas.tennisscoreboard.service;
 
 import com.dimasukimas.tennisscoreboard.dto.OngoingMatchResponseDto;
-import com.dimasukimas.tennisscoreboard.enumeration.MatchState;
 import com.dimasukimas.tennisscoreboard.mapper.OngoingMatchMapper;
+import com.dimasukimas.tennisscoreboard.model.common.MatchState;
 import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
-import com.dimasukimas.tennisscoreboard.model.entity.Player;
 import com.dimasukimas.tennisscoreboard.service.scoring.ScoringStrategy;
 import com.dimasukimas.tennisscoreboard.service.scoring.ScoringStrategyFactory;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MatchScoreCalculationService {
-    private final OngoingMatchesService ongoingMatchesService;
-    private final FinishedMatchesPersistenceService finishedMatchesPersistenceService;
-    private final OngoingMatchMapper mapper = OngoingMatchMapper.INSTANCE;
-
-    private MatchScoreCalculationService() {
-        this.ongoingMatchesService = OngoingMatchesService.getInstance();
-        this.finishedMatchesPersistenceService = FinishedMatchesPersistenceService.getInstance();
-    }
+    private static final OngoingMatchesService ongoingMatchesService = OngoingMatchesService.getInstance();
+    private static final FinishedMatchesPersistenceService finishedMatchesPersistenceService = FinishedMatchesPersistenceService.getInstance();
+    private static final OngoingMatchMapper mapper = OngoingMatchMapper.INSTANCE;
 
     @Getter
     private final static MatchScoreCalculationService instance = new MatchScoreCalculationService();
@@ -31,10 +28,7 @@ public class MatchScoreCalculationService {
 
         if (match.getMatchState() == MatchState.FINISHED) {
             ongoingMatchesService.deleteMatch(matchUuid);
-            Player matchWinner = defineMatchWinner(winnerId, match);
-            finishedMatchesPersistenceService.createAndPersistMatch(matchWinner, match);
-
-            return mapper.toDto(match, match.getMatchState(), winnerId);
+            finishedMatchesPersistenceService.createAndPersistMatch(match);
         }
         return mapper.toDto(match, match.getMatchState());
     }
@@ -43,11 +37,4 @@ public class MatchScoreCalculationService {
         ScoringStrategy<OngoingMatch, Long> scoringStrategy = ScoringStrategyFactory.getStrategy(match.getScoringStrategyType());
         scoringStrategy.calculateScore(match, winnerId);
     }
-
-    private Player defineMatchWinner(long winnerId, OngoingMatch match) {
-        return winnerId == match.getPlayer1().getId()
-                ? match.getPlayer1()
-                : match.getPlayer2();
-    }
-
 }

@@ -6,23 +6,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
 
-    <script src="js/app.js"></script>
+    <script src="../js/app.js"></script>
 </head>
 <body>
 <header class="header">
     <section class="nav-header">
         <div class="brand">
             <div class="nav-toggle">
-                <img src="images/menu.png" alt="Logo" class="logo">
+                <img src="../images/menu.png" alt="Logo" class="logo">
             </div>
             <span class="logo-text">TennisScoreboard</span>
         </div>
         <div>
             <nav class="nav-links">
-                <a class="nav-link" href="/">Home</a>
-                <a class="nav-link" href="/matches?page=1">Matches</a>
+                <a class="nav-link" href="${pageContext.request.contextPath}/">Home</a>
+                <a class="nav-link" href="${pageContext.request.contextPath}/matches?page=1">Matches</a>
             </nav>
         </div>
     </section>
@@ -33,8 +33,10 @@
             <h1>Start new match</h1>
             <div class="new-match-image"></div>
             <div class="form-container center">
-                <form method="post" action="/new-match">
-                    <p style="color: red;">Sample error message</p>
+                <form method="post" action="${pageContext.request.contextPath}/new-match">
+                    <c:if test="${not empty errorMessage}">
+                        <p style="color: red;">${errorMessage}</p>
+                    </c:if>
                     <label class="label-player"  for="playerOne">Player one</label>
                     <input class="input-player" id="playerOne" name="player1Name" placeholder="Name" type="text" required title="Enter a name">
                     <label class="label-player" for="playerTwo">Player two</label>

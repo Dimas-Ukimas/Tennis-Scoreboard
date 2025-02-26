@@ -1,11 +1,12 @@
 package com.dimasukimas.tennisscoreboard.service.scoring;
 
+import com.dimasukimas.tennisscoreboard.model.common.MatchState;
 import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
 
-public abstract class BaseTennisScoringStrategy<M, L extends Number> implements ScoringStrategy<OngoingMatch,Long>{
+public abstract class BaseTennisScoringStrategy implements ScoringStrategy<OngoingMatch, Long> {
 
     protected int SETS_TO_WIN_MATCH;
-    protected int GAMES_TO_WIN_SET ;
+    protected int GAMES_TO_WIN_SET;
     protected int POINTS_TO_WIN_GAME;
 
     public BaseTennisScoringStrategy() {
@@ -43,6 +44,16 @@ public abstract class BaseTennisScoringStrategy<M, L extends Number> implements 
             match.setPlayer2Points(match.getPlayer2Points() - 1);
         } else {
             match.setPlayer1Points(match.getPlayer1Points() - 1);
+        }
+    }
+
+    protected void setMatchWinnerIfFinished(OngoingMatch match, Long winnerId) {
+        if (match.getMatchState() == MatchState.FINISHED) {
+            if (winnerId == match.getPlayer1().getId()) {
+                match.setWinner(match.getPlayer1());
+            } else {
+                match.setWinner(match.getPlayer2());
+            }
         }
     }
 

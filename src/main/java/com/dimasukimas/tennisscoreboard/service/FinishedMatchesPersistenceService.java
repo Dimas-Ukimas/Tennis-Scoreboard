@@ -6,32 +6,32 @@ import com.dimasukimas.tennisscoreboard.mapper.FinishedMatchMapper;
 import com.dimasukimas.tennisscoreboard.mapper.PaginatedMatchesMapper;
 import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
 import com.dimasukimas.tennisscoreboard.model.entity.FinishedMatch;
-import com.dimasukimas.tennisscoreboard.model.entity.Player;
 import com.dimasukimas.tennisscoreboard.repository.MatchRepository;
 import com.dimasukimas.tennisscoreboard.util.PaginationUtil;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.LongSupplier;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FinishedMatchesPersistenceService {
 
-    private final MatchRepository matchRepository;
+    private static final MatchRepository matchRepository = MatchRepository.getInstance();
     private static final FinishedMatchMapper matchMapper = FinishedMatchMapper.INSTANCE;
     private static final PaginatedMatchesMapper pageMapper = PaginatedMatchesMapper.INSTANCE;
 
     @Getter
     private static final FinishedMatchesPersistenceService instance = new FinishedMatchesPersistenceService();
 
-    private FinishedMatchesPersistenceService() {
-        this.matchRepository = MatchRepository.getInstance();
-    }
-
-    public void createAndPersistMatch(Player matchWinner, OngoingMatch match) {
-        Player player1 = match.getPlayer1();
-        Player player2 = match.getPlayer2();
-        FinishedMatch finishedMatch = new FinishedMatch(player1, player2, matchWinner);
+    public void createAndPersistMatch(OngoingMatch match) {
+        FinishedMatch finishedMatch = new FinishedMatch(
+                match.getPlayer1(),
+                match.getPlayer2(),
+                match.getWinner()
+        );
 
         matchRepository.persist(finishedMatch);
     }
@@ -55,12 +55,12 @@ public class FinishedMatchesPersistenceService {
             LongSupplier totalCountSupplier,
             BiFunction<Integer, Integer, List<FinishedMatch>> matchesFetcher) {
 
-        int offset = PaginationUtil.calculateOffset(pageNumber, pageSize);
         long totalMatchesCount = totalCountSupplier.getAsLong();
-        List<FinishedMatch> finishedMatches = matchesFetcher.apply(offset, pageSize);
-
         int totalPages = PaginationUtil.getPagesCount(totalMatchesCount, pageSize);
         int currentPage = PaginationUtil.adjustPageNumber(pageNumber, totalPages);
+        int offset = PaginationUtil.calculateOffset(currentPage, pageSize);
+        List<FinishedMatch> finishedMatches = matchesFetcher.apply(offset, pageSize);
+
 
         return convertToPaginatedDto(finishedMatches, totalPages, currentPage);
     }

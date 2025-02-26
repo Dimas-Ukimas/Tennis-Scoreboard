@@ -1,9 +1,9 @@
 package com.dimasukimas.tennisscoreboard.service.scoring;
 
-import com.dimasukimas.tennisscoreboard.enumeration.MatchState;
+import com.dimasukimas.tennisscoreboard.model.common.MatchState;
 import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
 
-public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<OngoingMatch, Long> {
+public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy {
 
     protected int MIN_POINTS_TO_WIN_TIEBREAK;
     protected int GAMES_TO_START_TIEBREAK;
@@ -23,6 +23,7 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy<Ongoin
     public void calculateScore(OngoingMatch match, Long winnerId) {
         updateMatchScore(match, winnerId);
         updateMatchState(match);
+        setMatchWinnerIfFinished(match, winnerId);
     }
 
     protected void updateMatchScore(OngoingMatch match, Long winnerId) {

@@ -1,4 +1,4 @@
-package com.dimasukimas.tennisscoreboard.enumeration;
+package com.dimasukimas.tennisscoreboard.model.common;
 
 import lombok.Getter;
 
@@ -24,6 +24,6 @@ public enum TennisPoints {
                 return point.getView();
             }
         }
-        throw new IllegalArgumentException("No such value: " + value);
+        return "Value not found";
     }
 }

@@ -1,6 +1,7 @@
 package com.dimasukimas.tennisscoreboard.controller;
 
 import com.dimasukimas.tennisscoreboard.service.OngoingMatchesService;
+import com.dimasukimas.tennisscoreboard.util.DataValidationUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,18 +17,20 @@ public class NewMatchController extends HttpServlet {
     private final OngoingMatchesService ongoingMatchesService = OngoingMatchesService.getInstance();
 
     @Override
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.getRequestDispatcher("WEB-INF/new-match.jsp").forward(request, response);
+    }
+
+    @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String player1Name = request.getParameter("player1Name");
         String player2Name = request.getParameter("player2Name");
+
+        DataValidationUtil.validatePlayerNames(player1Name, player2Name);
 
         UUID newMatchUuid = ongoingMatchesService.createNewMatch(player1Name, player2Name);
 
         String redirectUrl = "match-score?uuid=" + newMatchUuid;
         response.sendRedirect(redirectUrl);
-    }
-
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.getRequestDispatcher("new-match.jsp").forward(request, response);
     }
 }

@@ -1,7 +1,6 @@
 package com.dimasukimas.tennisscoreboard.model.common;
 
-import com.dimasukimas.tennisscoreboard.enumeration.MatchState;
-import com.dimasukimas.tennisscoreboard.enumeration.ScoringStrategyType;
+import com.dimasukimas.tennisscoreboard.service.scoring.ScoringStrategyType;
 import com.dimasukimas.tennisscoreboard.model.entity.Player;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +14,7 @@ public class OngoingMatch {
 
     private Player player1;
     private Player player2;
+    private Player winner;
 
     private int player1Points;
     private int player2Points;

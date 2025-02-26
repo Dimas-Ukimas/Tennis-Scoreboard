@@ -507,3 +507,28 @@ footer {
 .num-page.current {
     font-weight: bold;
 }
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 104px); /* Учитываем высоту header и footer */
+    text-align: center;
+}
+
+.error-container h1 {
+    font-size: 80px;
+    font-weight: 700;
+    color: #42a7f5;
+}
+
+.error-container .message {
+    font-size: 24px;
+    color: #333;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}

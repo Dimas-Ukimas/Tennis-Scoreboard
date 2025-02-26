@@ -3,7 +3,9 @@ package com.dimasukimas.tennisscoreboard.repository;
 import com.dimasukimas.tennisscoreboard.exception.DataBaseException;
 import com.dimasukimas.tennisscoreboard.model.entity.FinishedMatch;
 import com.dimasukimas.tennisscoreboard.util.HibernateUtil;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -12,9 +14,10 @@ import org.hibernate.SessionFactory;
 import java.util.List;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MatchRepository extends BaseRepository<FinishedMatch> {
 
-    private final SessionFactory sessionFactory;
+    private static final SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
 
     private static final String FETCH_ALL_MATCHES_QUERY =
             "select fm from FinishedMatch fm " +
@@ -28,10 +31,6 @@ public class MatchRepository extends BaseRepository<FinishedMatch> {
 
     @Getter
     private static final MatchRepository instance = new MatchRepository();
-
-    private MatchRepository() {
-        sessionFactory = HibernateUtil.getSessionFactory();
-    }
 
     public List<FinishedMatch> findAllPaginatedMatches(int offset, int pageSize) {
         try (Session session = sessionFactory.openSession()) {

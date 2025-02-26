@@ -1,13 +1,14 @@
 package com.dimasukimas.tennisscoreboard.service;
 
 import com.dimasukimas.tennisscoreboard.dto.OngoingMatchResponseDto;
-import com.dimasukimas.tennisscoreboard.enumeration.MatchState;
 import com.dimasukimas.tennisscoreboard.exception.NotFoundException;
 import com.dimasukimas.tennisscoreboard.mapper.OngoingMatchMapper;
 import com.dimasukimas.tennisscoreboard.model.common.OngoingMatch;
 import com.dimasukimas.tennisscoreboard.model.entity.Player;
 import com.dimasukimas.tennisscoreboard.repository.PlayerRepository;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -16,17 +17,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OngoingMatchesService {
     private final Map<UUID, OngoingMatch> ongoingMatches = new ConcurrentHashMap<>();
-    private final PlayerRepository playerRepository;
-    private final OngoingMatchMapper mapper = OngoingMatchMapper.INSTANCE;
-
-    private OngoingMatchesService() {
-        this.playerRepository = PlayerRepository.getInstance();
-    }
+    private static final PlayerRepository playerRepository = PlayerRepository.getInstance();
+    private static final OngoingMatchMapper mapper = OngoingMatchMapper.INSTANCE;
 
     @Getter
-    private final static OngoingMatchesService instance = new OngoingMatchesService();
+    private static final OngoingMatchesService instance = new OngoingMatchesService();
 
     public UUID createNewMatch(String player1Name, String player2Name) {
         UUID matchUuid = UUID.randomUUID();
@@ -36,6 +34,7 @@ public class OngoingMatchesService {
 
         OngoingMatch match = new OngoingMatch(player1, player2);
         ongoingMatches.put(matchUuid, match);
+        log.info("Match {} has been created. Player1 - {}, Player2 - {}", matchUuid, player1, player2);
 
         return matchUuid;
     }
@@ -54,15 +53,19 @@ public class OngoingMatchesService {
 
     protected OngoingMatch getMatch(UUID matchUuid) {
         return Optional.ofNullable(ongoingMatches.get(matchUuid))
-                .orElseThrow(() -> {
-                    log.warn("Match with UUID {} not found", matchUuid);
-                    return new NotFoundException("Match " + matchUuid + " not found");
-                });
+                .orElseThrow(() -> throwNotFoundException(matchUuid));
     }
 
     public OngoingMatchResponseDto getMatchScore(UUID matchUuid) {
-        MatchState matchState = ongoingMatches.get(matchUuid).getMatchState();
+        OngoingMatch match = Optional.ofNullable(ongoingMatches.get(matchUuid))
+                .orElseThrow(() -> throwNotFoundException(matchUuid));
 
-        return mapper.toDto(ongoingMatches.get(matchUuid), matchState);
+        return mapper.toDto(ongoingMatches.get(matchUuid), match.getMatchState());
     }
+
+    private NotFoundException throwNotFoundException(UUID matchUuid) {
+        log.error("Match {} not found", matchUuid);
+        return new NotFoundException("Match not found");
+    }
+
 }
