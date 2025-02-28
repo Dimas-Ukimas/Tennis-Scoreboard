@@ -24,6 +24,6 @@ public enum TennisPoints {
                 return point.getView();
             }
         }
-        return "Value not found";
+        return String.valueOf(value);
     }
 }

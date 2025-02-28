@@ -73,7 +73,7 @@ public class DataValidationUtil {
     private static void checkValidCharacters(String player1Name, String player2Name) {
         if (!NAME_PATTERN.matcher(player1Name).matches() || !NAME_PATTERN.matcher(player2Name).matches()) {
             log.warn("Invalid player names: '{}', '{}' - invalid characters", player1Name, player2Name);
-            throw new InvalidDataException("Player names can only contain Latin letters, numbers, hyphens, and underscores");
+            throw new InvalidDataException("Player names can only contain Latin letters, numbers, hyphens, underscores and single space between words");
         }
     }
 
