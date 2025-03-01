@@ -40,7 +40,7 @@ public class DataValidationUtil {
     public static int parsePageNumber(String id) {
         int pageNumber;
         try {
-            pageNumber = Integer.parseInt(id);
+            pageNumber = (int) Long.parseLong(id);
         } catch (IllegalArgumentException e) {
             log.warn("Failed to parse page number {}", id, e);
             throw new IllegalArgumentException("Incorrect page number", e);

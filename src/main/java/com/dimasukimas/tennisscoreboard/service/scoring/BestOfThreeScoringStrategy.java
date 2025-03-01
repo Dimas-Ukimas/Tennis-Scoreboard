@@ -83,7 +83,7 @@ public class BestOfThreeScoringStrategy extends BaseTennisScoringStrategy {
 
         boolean hasTwoOrMoreGamesDifference = gamesDifference >= 2;
         boolean hasOneGameDifference = gamesDifference == 1;
-        boolean hasRequiredGamesToWinSet = player1Games == GAMES_TO_WIN_SET || player2Games == GAMES_TO_WIN_SET;
+        boolean hasRequiredGamesToWinSet = player1Games >= GAMES_TO_WIN_SET || player2Games >= GAMES_TO_WIN_SET;
 
         boolean hasSetWinConditionWithoutTiebreak = hasTwoOrMoreGamesDifference && hasRequiredGamesToWinSet;
         boolean hasSetWinConditionAtTiebreak = hasOneGameDifference && match.getMatchState() == MatchState.TIEBREAK;
